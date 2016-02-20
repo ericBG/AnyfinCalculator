@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>AnyfinCalculator</RootNamespace>
     <AssemblyName>AnyfinCalculator</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -49,6 +50,7 @@
   <ItemGroup>
     <Compile Include="AnyfinPlugin.cs" />
     <Compile Include="DamageCalculator.cs" />
+    <Compile Include="GraveyardTracker.cs" />
     <Compile Include="Murlocs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
