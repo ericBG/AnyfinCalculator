@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="AnyfinPlugin.cs" />
     <Compile Include="DamageCalculator.cs" />
+    <Compile Include="Murlocs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
