@@ -50,7 +50,7 @@
   <ItemGroup>
     <Compile Include="AnyfinPlugin.cs" />
     <Compile Include="DamageCalculator.cs" />
-    <Compile Include="GraveyardTracker.cs" />
+    <Compile Include="GraveyardHelper.cs" />
     <Compile Include="Murlocs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
