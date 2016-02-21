@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using Hearthstone_Deck_Tracker;
 using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Plugins;
+using Hearthstone_Deck_Tracker.Utility.Logging;
 using APICore = Hearthstone_Deck_Tracker.API.Core;
 
 namespace AnyfinCalculator
@@ -34,26 +36,20 @@ namespace AnyfinCalculator
             Canvas.SetTop(_displayBlock, _centreOfCanvas.X - (size.X/2));
             Canvas.SetLeft(_displayBlock, _centreOfCanvas.Y - (size.Y / 2));
             _displayBlock.Visibility = Visibility.Visible;
+            Log.Debug("Textbox has been 'set up'");
         }
 
         private void OnMouseOver(Card card)
         {
             if (!card.IsAnyfin()) return;
+            Log.Debug("Anyfin hover detected");
             Range<int> damageDealt = _calculator.CalculateDamageDealt();
             PlaceTextboxWithText(damageDealt.Minimum == -1 ? "???" : damageDealt.ToString());
         }
 
-        public void OnUnload()
-        {
-        }
-
-        public void OnButtonPress()
-        {
-        }
-
-        public void OnUpdate()
-        {
-        }
+        public void OnUnload() { }
+        public void OnButtonPress() { }
+        public void OnUpdate() { }
 
         private DamageCalculator _calculator;
 
