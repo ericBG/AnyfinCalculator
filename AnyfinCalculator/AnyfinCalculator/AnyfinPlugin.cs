@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Windows.Controls;
+using Hearthstone_Deck_Tracker;
+using Hearthstone_Deck_Tracker.API;
+using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Plugins;
 
 namespace AnyfinCalculator
@@ -8,23 +11,30 @@ namespace AnyfinCalculator
     {
         public void OnLoad()
         {
-            throw new NotImplementedException();
+            _calculator = new DamageCalculator();
+            GameEvents.OnPlayerHandMouseOver.Add(DisplayDamage);
+        }
+
+        private void DisplayDamage(Card card)
+        {
+            if (card.Id != "LOE_026") return;
+            Range<int> damageDealt = _calculator.CalculateDamageDealt();
+            Logger.WriteLine(damageDealt.Minimum == -1 ? "???" : damageDealt.ToString());
         }
 
         public void OnUnload()
         {
-            throw new NotImplementedException();
         }
 
         public void OnButtonPress()
         {
-            throw new NotImplementedException();
         }
 
         public void OnUpdate()
         {
-            throw new NotImplementedException();
         }
+
+        private DamageCalculator _calculator;
 
         public string Name => "Anyfin Can Happen Calculator 1.0.0";
 
