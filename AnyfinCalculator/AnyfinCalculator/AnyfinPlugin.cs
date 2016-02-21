@@ -1,25 +1,46 @@
 ﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using Hearthstone_Deck_Tracker;
 using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Plugins;
+using APICore = Hearthstone_Deck_Tracker.API.Core;
 
 namespace AnyfinCalculator
 {
     public class AnyfinPlugin : IPlugin
     {
+        private HearthstoneTextBlock _displayBlock;
+        private Point _centreOfCanvas;
         public void OnLoad()
         {
             _calculator = new DamageCalculator();
-            GameEvents.OnPlayerHandMouseOver.Add(DisplayDamage);
+            _displayBlock = new HearthstoneTextBlock {FontSize = 18, Visibility = Visibility.Collapsed};
+            APICore.OverlayCanvas.Children.Add(_displayBlock);
+            GameEvents.OnPlayerHandMouseOver.Add(OnMouseOver);
+            GameEvents.OnMouseOverOff.Add(OnMouseOff);
+            APICore.OverlayCanvas.SizeChanged += (sender, args) => RecalculateCentre();
         }
 
-        private void DisplayDamage(Card card)
+        private void OnMouseOff() => _displayBlock.Visibility = Visibility.Collapsed;
+
+        private void RecalculateCentre() => _centreOfCanvas = new Point(APICore.OverlayCanvas.Width/2, APICore.OverlayCanvas.Width/2);
+
+        private void PlaceTextboxWithText(string text)
         {
-            if (card.Id != "LOE_026") return;
+            _displayBlock.Text = text;
+            Point size = new Point(_displayBlock.ActualWidth, _displayBlock.ActualHeight);
+            Canvas.SetTop(_displayBlock, _centreOfCanvas.X - (size.X/2));
+            Canvas.SetLeft(_displayBlock, _centreOfCanvas.Y - (size.Y / 2));
+            _displayBlock.Visibility = Visibility.Visible;
+        }
+
+        private void OnMouseOver(Card card)
+        {
+            if (!card.IsAnyfin()) return;
             Range<int> damageDealt = _calculator.CalculateDamageDealt();
-            Logger.WriteLine(damageDealt.Minimum == -1 ? "???" : damageDealt.ToString());
+            PlaceTextboxWithText(damageDealt.Minimum == -1 ? "???" : damageDealt.ToString());
         }
 
         public void OnUnload()

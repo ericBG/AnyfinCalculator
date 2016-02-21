@@ -1,4 +1,5 @@
-﻿using Hearthstone_Deck_Tracker.Hearthstone;
+﻿using System.Runtime.CompilerServices;
+using Hearthstone_Deck_Tracker.Hearthstone;
 
 namespace AnyfinCalculator
 {
@@ -22,12 +23,28 @@ namespace AnyfinCalculator
         public static Card MurlocTidecaller { get; }
         public static Card AnyfinCanHappen { get; }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsMurloc(this Card card) => card.Race == "Murloc";
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsChargeMurloc(this Card card) => card.Id == OldMurkEye.Id || card.Id == BluegillWarrior.Id;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsBluegill(this Card card) => card.Id == BluegillWarrior.Id;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsGrimscale(this Card card) => card.Id == GrimscaleOracle.Id;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsWarleader(this Card card) => card.Id == MurlocWarleader.Id;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsOldMurkEye(this Card card) => card.Id == OldMurkEye.Id;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsTidecaller(this Card card) => card.Id == MurlocTidecaller.Id;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsAnyfin(this Card card) => card.Id == AnyfinCanHappen.Id;
     }
 }
