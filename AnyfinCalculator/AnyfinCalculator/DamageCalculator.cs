@@ -6,6 +6,7 @@ using System.Windows.Documents;
 using Hearthstone_Deck_Tracker;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
+using Hearthstone_Deck_Tracker.Utility.Logging;
 
 namespace AnyfinCalculator
 {
@@ -22,7 +23,7 @@ namespace AnyfinCalculator
             else
             {
                 //fuck
-                Logger.WriteLine((_helper.TrackedMinions.Count() + Core.Game.Player.Board.Count).ToString());
+                Log.Debug($"Currently there is {(_helper.TrackedMinions.Count() + Core.Game.Player.Board.Count)} minions on board!");
                 return new Range<int> {Maximum = -1, Minimum = -1};
             }
         }
