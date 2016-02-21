@@ -16,8 +16,9 @@ namespace AnyfinCalculator
             _shouldBeTracked = shouldBeTracked;
         }
 
-        public IEnumerable<Card> TrackedMinions => Core.Game.Player.Graveyard.Select(ce => ce.Entity.Card)
-            .Concat(Core.Game.Opponent.Graveyard.Select(ce => ce.Entity.Card))
-            .Where(thisShouldBeAPredicate =>_shouldBeTracked(thisShouldBeAPredicate));
+        public IEnumerable<Card> TrackedMinions
+            => (Core.Game.Player.Graveyard ?? Enumerable.Empty<CardEntity>()).Select(ce => ce.Entity.Card)
+                .Concat((Core.Game.Opponent.Graveyard ?? Enumerable.Empty<CardEntity>()).Select(ce => ce.Entity.Card))
+                .Where(thisShouldBeAPredicate => _shouldBeTracked(thisShouldBeAPredicate));
     }
 }
