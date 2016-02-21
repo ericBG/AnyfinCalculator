@@ -9,7 +9,7 @@ namespace AnyfinCalculator
 {
     internal class DamageCalculator
     {
-        private readonly GraveyardHelper _helper = new GraveyardHelper();
+        private readonly GraveyardHelper _helper = new GraveyardHelper(c => c.Race == "Murloc");
         public Range<int> CalculateDamageDealt()
         {
             List<Card> deadMurlocs = _helper.TrackedMinions.ToList();

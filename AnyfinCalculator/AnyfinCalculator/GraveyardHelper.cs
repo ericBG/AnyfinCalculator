@@ -13,7 +13,7 @@ namespace AnyfinCalculator
 
         public GraveyardHelper(Predicate<Card> shouldBeTracked = null)
         {
-            _shouldBeTracked = shouldBeTracked;
+            _shouldBeTracked = shouldBeTracked ?? (c => true);
         }
 
         public IEnumerable<Card> TrackedMinions
