@@ -6,3 +6,6 @@ Not much, yet. I'm still writing it. The idea is though, that using Hearthstone 
 
 #Sweet, that sounds awesome. How can I use this?
 Well right now you'd have to build it from source, but soon I'm going to have releases. Thes idea is simple enough though - wherever you have Hearthstone Deck Tracker installed, drop the `.dll` created into the 'Plugins' folder. Then run Hearthstone Deck Tracker and enable this plugin in the plugins menu, and ta-da!
+
+#Dude, is this really fair?
+To be honest, I don't know anymore. I used to think this was pretty fair, I mean it was something you could do with pen and paper right? But the maths (especially when you get to 7+ minions on board) is really quite complicated. So use it at your own discretion, is my advice.
