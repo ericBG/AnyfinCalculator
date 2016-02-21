@@ -1,5 +1,5 @@
 # AnyfinCalculator
-A calculator for Anyfin Can Happen, inbuilt to Hearthstone Deck Tracker.
+A calculator for Anyfin Can Happen, inbuilt to Hearthstone Deck Tracker. ***NOTE:*** This currently only works with Hearthstone Deck Tracker commit ed3aa02 and later, due to a new API method being used in it, so currently to use it you'll have to compile it by hand.
 
 # So what exactly does this do?
 Not much, yet. I'm still writing it. The idea is though, that using Hearthstone Deck Tracker's abilities, whenever the card "Anyfin Can Happen" is hovered over in the player's hand, it will display a quick overview of how much damage it will/could inflict onto the opponent (just counting murloc damage). This would include murlocs on the board, but not other minions.
