@@ -19,9 +19,14 @@ namespace AnyfinCalculator
             OldMurkEye = Database.GetCardFromId("EX1_062");
             AnyfinCanHappen = Database.GetCardFromId("LOE_026");
         }
-        public static bool IsMurloc(Card card)
+        public static bool IsMurloc(this Card card)
         {
             return card.Race == "Murloc";
+        }
+
+        public static bool IsChargeMurloc(this Card card)
+        {
+            return card.Id == OldMurkEye.Id || card.Id == BluegillWarrior.Id;
         }
     }
 }
