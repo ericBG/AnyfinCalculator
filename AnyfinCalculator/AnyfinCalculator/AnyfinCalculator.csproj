@@ -30,6 +30,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Hearthstone Deck Tracker">
       <HintPath>..\..\..\..\Hearthstone\Hearthstone Deck Tracker\Hearthstone Deck Tracker.exe</HintPath>
