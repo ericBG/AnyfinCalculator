@@ -11,6 +11,7 @@ namespace AnyfinCalculator
             GrimscaleOracle = Database.GetCardFromId("EX1_508");
             MurlocWarleader = Database.GetCardFromId("EX1_507");
             OldMurkEye = Database.GetCardFromId("EX1_062");
+            MurlocTidecaller = Database.GetCardFromId("EX1_509");
             AnyfinCanHappen = Database.GetCardFromId("LOE_026");
         }
 
@@ -18,12 +19,15 @@ namespace AnyfinCalculator
         public static Card GrimscaleOracle { get; }
         public static Card MurlocWarleader { get; }
         public static Card OldMurkEye { get; }
+        public static Card MurlocTidecaller { get; }
         public static Card AnyfinCanHappen { get; }
+
         public static bool IsMurloc(this Card card) => card.Race == "Murloc";
         public static bool IsChargeMurloc(this Card card) => card.Id == OldMurkEye.Id || card.Id == BluegillWarrior.Id;
         public static bool IsBluegill(this Card card) => card.Id == BluegillWarrior.Id;
         public static bool IsGrimscale(this Card card) => card.Id == GrimscaleOracle.Id;
         public static bool IsWarleader(this Card card) => card.Id == MurlocWarleader.Id;
         public static bool IsOldMurkEye(this Card card) => card.Id == OldMurkEye.Id;
+        public static bool IsTidecaller(this Card card) => card.Id == MurlocTidecaller.Id;
     }
 }

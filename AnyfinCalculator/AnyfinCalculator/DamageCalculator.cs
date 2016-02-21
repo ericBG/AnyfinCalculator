@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Documents;
 using Hearthstone_Deck_Tracker;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
@@ -11,53 +14,70 @@ namespace AnyfinCalculator
         private readonly GraveyardHelper _helper = new GraveyardHelper(c => c.Race == "Murloc");
         public Range<int> CalculateDamageDealt()
         { 
-            List<Card> deadMurlocs = _helper.TrackedMinions.ToList();
-            if (deadMurlocs.Count + Core.Game.Player.Board.Count <= 7)
+            if (_helper.TrackedMinions.Count() + Core.Game.Player.Board.Count <= 7)
             {
-                List<Card> aliveMurlocs = Core.Game.Player.Board.Select(c => c.Entity.Card).Where(c => c.IsMurloc()).ToList();
-                List<CardEntity> attackableAliveMurlocs = Core.Game.Player.Board.Where(CanAttack).Where(ce => ce.Entity.Card.IsMurloc()).ToList();
-                List<Card> attackableAliveMurlocCards = attackableAliveMurlocs.Select(ce => ce.Entity.Card).ToList();
-                List<Card> allMurlocs = deadMurlocs.Concat(aliveMurlocs).ToList();
-                // murlocs on board that can attack + charge murlocs that will be summoned = murlocs that can attack
-                int chargeMurlocsToBeSummoned = deadMurlocs.Count(Murlocs.IsChargeMurloc);
-                int oldMurlocsThatCanAttack = attackableAliveMurlocCards.Count;
-                int totalAttackableMurlocs = chargeMurlocsToBeSummoned + oldMurlocsThatCanAttack;
-
-                //sum up the attack of all murlocs that can attack currently on the board
-                int damage = attackableAliveMurlocs.Sum(card => card.Entity.GetTag(GAME_TAG.ATK));
-                //that felt bad, deleting an hour's work
-                //let's do this counting algorhithm another way
-                //get base attack and then reapply effect on all
-                //every warleader gives 2 to every alive murloc except itself
-                /////////////////////////////////////////////////////////////////////////////////////////////////
-                //NOTE: For the purposes of this algorithm, Murk-Eye's base attack is 1 and it counts itself!!!//
-                /////////////////////////////////////////////////////////////////////////////////////////////////
-                damage -= aliveMurlocs.Count(Murlocs.IsWarleader)*2*(aliveMurlocs.Count - 1);
-                //same with grimscale, except it gives 1
-                damage -= aliveMurlocs.Count(Murlocs.IsGrimscale)*(aliveMurlocs.Count - 1);
-                //each murk eye needs 1 off for each murloc
-                damage -= attackableAliveMurlocCards.Count(Murlocs.IsOldMurkEye)*aliveMurlocs.Count;
-
-                //REMEMBER: FOR THIS ALGO MURK-EYE'S BASE IS 1
-                damage += deadMurlocs.Count(Murlocs.IsOldMurkEye);
-                damage += deadMurlocs.Count(Murlocs.IsBluegill)*2;
-                damage += allMurlocs.Count(Murlocs.IsWarleader)*2*totalAttackableMurlocs;
-                //but a warleader can't buff itself!
-                damage -= attackableAliveMurlocCards.Count(Murlocs.IsWarleader) * 2;
-                //same shit for grimscale, at 1x instead of 2x
-                damage += allMurlocs.Count(Murlocs.IsGrimscale)*totalAttackableMurlocs;
-                damage -= attackableAliveMurlocCards.Count(Murlocs.IsGrimscale);
-                //and then let murk eye get buffed
-                damage += (allMurlocs.Count + Core.Game.Opponent.Board.Count(ce => ce.Entity.Card.IsMurloc()))*
-                          allMurlocs.Count(Murlocs.IsOldMurkEye);
-                //boom
+                var damage = CalculateDamageInternal(_helper.TrackedMinions, Core.Game.Player.Board, Core.Game.Opponent.Board);
                 return new Range<int> {Maximum = damage, Minimum = damage};
             }
             else
             {
                 //fuck
+                Logger.WriteLine((_helper.TrackedMinions.Count() + Core.Game.Player.Board.Count).ToString());
                 return new Range<int> {Maximum = -1, Minimum = -1};
             }
+        }
+
+        private static int CalculateDamageInternal(IEnumerable<Card> graveyard, IList<CardEntity> friendlyBoard, IEnumerable<CardEntity> opponentBoard)
+        {
+            List<Card> deadMurlocs = graveyard.ToList();
+            List<Card> aliveMurlocs = friendlyBoard.Select(c => c.Entity.Card).Where(c => c.IsMurloc()).ToList();
+            List<CardEntity> possibleAliveAttackers =
+                friendlyBoard.Where(ce => ce.Entity.Card.IsMurloc() && CanAttack(ce)).ToList();
+            List<Card> possibleAliveAttackerCards = possibleAliveAttackers.Select(ce => ce.Entity.Card).ToList();
+            List<Card> allFriendlyMurlocs = deadMurlocs.Concat(aliveMurlocs).ToList();
+            List<Card> opponentMurlocs = opponentBoard.Select(c => c.Entity.Card).Where(Murlocs.IsMurloc).ToList();
+            List<Card> allMurlocs = allFriendlyMurlocs.Concat(opponentMurlocs).ToList();
+            // murlocs on board that can attack + charge murlocs that will be summoned = murlocs that can attack
+            int chargeMurlocsToBeSummoned = deadMurlocs.Count(Murlocs.IsChargeMurloc);
+            int oldMurlocsThatCanAttack = possibleAliveAttackerCards.Count;
+            int totalAttackableMurlocs = chargeMurlocsToBeSummoned + oldMurlocsThatCanAttack;
+            //sum up the attack of all murlocs that can attack currently on the board
+            int damage = possibleAliveAttackers.Sum(card => card.Entity.GetTag(GAME_TAG.ATK));
+            //that felt bad, deleting an hour's work
+            //let's do this counting algorhithm another way
+            //get base attack and then reapply effect on all
+            //every warleader gives 2 to every alive murloc except itself
+
+            /////////////////////////////////////////////////////////////////////////////////////////////////
+            //NOTE: For the purposes of this algorithm, Murk-Eye's base attack is 1 and it counts itself!!!//
+            /////////////////////////////////////////////////////////////////////////////////////////////////
+            
+            damage -= aliveMurlocs.Count(Murlocs.IsWarleader)*2*(oldMurlocsThatCanAttack - 1);
+            //same with grimscale, except it gives 1
+            damage -= aliveMurlocs.Count(Murlocs.IsGrimscale)*(oldMurlocsThatCanAttack - 1);
+            //each murk eye needs 1 off for each murloc
+            damage -= possibleAliveAttackerCards.Count(Murlocs.IsOldMurkEye)*allMurlocs.Count;
+            //also take into account opponent's warleaders and grimscales
+            damage -= opponentMurlocs.Count(Murlocs.IsWarleader)*2*oldMurlocsThatCanAttack;
+            damage -= opponentMurlocs.Count(Murlocs.IsGrimscale)*oldMurlocsThatCanAttack;
+
+            //REMEMBER: FOR THIS ALGO MURK-EYE'S BASE IS 1
+            damage += deadMurlocs.Count(Murlocs.IsOldMurkEye);
+            damage += deadMurlocs.Count(Murlocs.IsBluegill)*2;
+            //warleader and grimscale buff ALL murlocs
+            damage += allMurlocs.Count(Murlocs.IsWarleader)*2*totalAttackableMurlocs;
+            //but a warleader can't buff itself!
+            damage -= possibleAliveAttackerCards.Count(Murlocs.IsWarleader)*2;
+            //same shit for grimscale, at 1x instead of 2x
+            damage += allMurlocs.Count(Murlocs.IsGrimscale)*totalAttackableMurlocs;
+            damage -= possibleAliveAttackerCards.Count(Murlocs.IsGrimscale);
+            //and then let murk eye get buffed
+            damage += (allFriendlyMurlocs.Count + opponentMurlocs.Count)*
+                      allFriendlyMurlocs.Count(Murlocs.IsOldMurkEye);
+            //edgecase of tidecallers, too
+            damage += possibleAliveAttackerCards.Count(Murlocs.IsTidecaller)*
+                      Math.Min(deadMurlocs.Count, 7 - friendlyBoard.Count());
+            return damage;
         }
 
         private static bool CanAttack(CardEntity cardEntity)
