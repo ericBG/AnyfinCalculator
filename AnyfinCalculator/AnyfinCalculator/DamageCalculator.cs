@@ -23,8 +23,9 @@ namespace AnyfinCalculator
 
                 //sum up the attack of all murlocs currently on the board
                 int damage = Core.Game.Player.Board.Where(c => c.Entity.Card.IsMurloc()).Sum(card => card.Entity.GetTag(GAME_TAG.ATK));
-                //then for each new charge murloc add two (old murk-eye and bluegill are both 2atk charge)
-                damage += chargeMurlocsToBeSummoned*2;
+                //add attack for each new charge murloc
+                //murk eye attack is set to 1 because I'm making it count itself in the damage increase per murloc
+                damage += deadMurlocs.Count(Murlocs.IsOldMurkEye) + (2*deadMurlocs.Count(Murlocs.IsBluegill));
                 //for each murk eye, damage is added according to the total amount of murlocs, post summon
                 damage += (allMurlocs.Count(Murlocs.IsOldMurkEye))*
                           (allMurlocs.Count + Core.Game.Opponent.Board.Count(c => c.Entity.Card.IsMurloc()));
