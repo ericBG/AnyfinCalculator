@@ -31,7 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <RunPostBuildEvent>Always</RunPostBuildEvent>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Hearthstone Deck Tracker">
@@ -60,10 +60,12 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>if exist "C:\Users\EricAlejandro\Documents\Hearthstone\Hearthstone Deck Tracker\Plugins\AnyfinCalculator.dll" del "C:\Users\EricAlejandro\Documents\Hearthstone\Hearthstone Deck Tracker\Plugins\AnyfinCalculator.dll"</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>copy "$(ProjectDir)$(OutDir)$(TargetFileName)" "C:\Users\EricAlejandro\Documents\Hearthstone\Hearthstone Deck Tracker\Plugins\AnyfinCalculator.dll"</PostBuildEvent>
+    <PostBuildEvent>if exist "C:\Users\EricAlejandro\Documents\Hearthstone\Hearthstone Deck Tracker\Plugins\AnyfinCalculator.dll" del "C:\Users\EricAlejandro\Documents\Hearthstone\Hearthstone Deck Tracker\Plugins\AnyfinCalculator.dll"
+copy "$(ProjectDir)$(OutDir)$(TargetFileName)" "C:\Users\EricAlejandro\Documents\Hearthstone\Hearthstone Deck Tracker\Plugins\AnyfinCalculator.dll"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
