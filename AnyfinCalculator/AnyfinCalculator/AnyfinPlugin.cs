@@ -14,6 +14,8 @@ namespace AnyfinCalculator
     {
         private HearthstoneTextBlock _displayBlock;
         private Point _centreOfCanvas;
+        private DamageCalculator _calculator;
+        
         public void OnLoad()
         {
             _calculator = new DamageCalculator();
@@ -27,6 +29,7 @@ namespace AnyfinCalculator
         {
             APICore.OverlayCanvas.Children.Remove(_displayBlock);
             _displayBlock.Visibility = Visibility.Collapsed;
+            Debug.Log("Removed Anyfin textbox from screen.")
         }
 
         private void RecalculateCentre() => _centreOfCanvas = new Point(APICore.OverlayCanvas.Width/2, APICore.OverlayCanvas.Height/2);
@@ -36,11 +39,11 @@ namespace AnyfinCalculator
             _displayBlock.Text = text;
             Point size = new Point(_displayBlock.ActualWidth, _displayBlock.ActualHeight);
             Canvas.SetLeft(_displayBlock, _centreOfCanvas.X - (size.X/2));
-            Canvas.SetTop(_displayBlock, _centreOfCanvas.Y - (size.Y / 2));
+            Canvas.SetTop(_displayBlock, _centreOfCanvas.Y - (size.Y/2));
             _displayBlock.Visibility = Visibility.Visible;
             if (!APICore.OverlayCanvas.Children.Contains(_displayBlock))
                 APICore.OverlayCanvas.Children.Add(_displayBlock);
-            Log.Debug("Textbox has been 'set up'");
+            Log.Debug($"Textbox has been placed to display {text}.");
         }
 
         private void OnMouseOver(Card card)
@@ -55,15 +58,13 @@ namespace AnyfinCalculator
         public void OnButtonPress() { }
         public void OnUpdate() { }
 
-        private DamageCalculator _calculator;
-
         public string Name => "Anyfin Can Happen Calculator 1.0.0";
 
         public string Description
             => "Anyfin Can Happen Calculator is a plugin for Hearthstone Deck Tracker which allows you to quickly and easily figure out the damage "
                 + "(or damage range) that playing Anyfin Can Happen will have on your current board. \n For any questions or issues look at github.com/ericBG/AnyfinCalculator";
 
-        public string ButtonText => "";
+        public string ButtonText => "Options";
         public string Author => "ericBG";
         public Version Version => new Version(1, 0, 0);
         public MenuItem MenuItem => null;
