@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using Hearthstone_Deck_Tracker;
@@ -30,7 +29,7 @@ namespace AnyfinCalculator
             _displayBlock.Visibility = Visibility.Collapsed;
         }
 
-        private void RecalculateCentre() => _centreOfCanvas = new Point(APICore.OverlayCanvas.Width/2, APICore.OverlayCanvas.Width/2);
+        private void RecalculateCentre() => _centreOfCanvas = new Point(APICore.OverlayCanvas.Width/2, APICore.OverlayCanvas.Height/2);
 
         private void PlaceTextboxWithText(string text)
         {
