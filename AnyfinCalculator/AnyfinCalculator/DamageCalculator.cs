@@ -9,7 +9,7 @@ using Hearthstone_Deck_Tracker.Utility.Logging;
 
 namespace AnyfinCalculator
 {
-    internal class DamageCalculator
+    public class DamageCalculator
     {
         private readonly GraveyardHelper _helper = new GraveyardHelper(c => c.Race == "Murloc");
 
@@ -48,6 +48,7 @@ namespace AnyfinCalculator
             List<Card> allFriendlyMurlocs = deadMurlocs.Concat(aliveMurlocs).ToList();
             List<Card> opponentMurlocs = opponentBoard.Select(c => c.Entity.Card).Where(Murlocs.IsMurloc).ToList();
             List<Card> allMurlocs = allFriendlyMurlocs.Concat(opponentMurlocs).ToList();
+            Log.Debug(possibleAliveAttackerCards.Aggregate("", (s, card) => s + card.Name + " "));
             // murlocs on board that can attack + charge murlocs that will be summoned = murlocs that can attack
             int chargeMurlocsToBeSummoned = deadMurlocs.Count(Murlocs.IsChargeMurloc);
             int oldMurlocsThatCanAttack = possibleAliveAttackerCards.Count;
@@ -63,9 +64,9 @@ namespace AnyfinCalculator
             //NOTE: For the purposes of this algorithm, Murk-Eye's base attack is 1 and it counts itself!!!//
             /////////////////////////////////////////////////////////////////////////////////////////////////
 
-            damage -= aliveMurlocs.Count(Murlocs.IsWarleader)*2*(oldMurlocsThatCanAttack - 1);
+            damage -= aliveMurlocs.Count(Murlocs.IsWarleader)*2*(Math.Max(oldMurlocsThatCanAttack - 1, 0));
             //same with grimscale, except it gives 1
-            damage -= aliveMurlocs.Count(Murlocs.IsGrimscale)*(oldMurlocsThatCanAttack - 1);
+            damage -= aliveMurlocs.Count(Murlocs.IsGrimscale)*(Math.Max(oldMurlocsThatCanAttack - 1, 0));
             //each murk eye needs 1 off for each murloc
             damage -= possibleAliveAttackerCards.Count(Murlocs.IsOldMurkEye)*allMurlocs.Count;
             //also take into account opponent's warleaders and grimscales

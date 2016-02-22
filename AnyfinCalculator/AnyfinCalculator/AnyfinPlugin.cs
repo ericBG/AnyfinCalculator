@@ -15,31 +15,24 @@ namespace AnyfinCalculator
         private HearthstoneTextBlock _displayBlock;
         private Point _centreOfCanvas;
         private DamageCalculator _calculator;
-        
+
         public void OnLoad()
         {
-            _calculator = new DamageCalculator();
             _displayBlock = new HearthstoneTextBlock {FontSize = 36, Visibility = Visibility.Collapsed};
+            _calculator = new DamageCalculator();
             GameEvents.OnPlayerHandMouseOver.Add(OnMouseOver);
             GameEvents.OnMouseOverOff.Add(OnMouseOff);
-            APICore.OverlayCanvas.SizeChanged += (sender, args) => RecalculateCentre();
         }
 
         private void OnMouseOff()
         {
-            APICore.OverlayCanvas.Children.Remove(_displayBlock);
             _displayBlock.Visibility = Visibility.Collapsed;
-            Log.Debug("Removed Anyfin textbox from screen.");
+            APICore.OverlayCanvas.Children.Remove(_displayBlock);
         }
-
-        private void RecalculateCentre() => _centreOfCanvas = new Point(APICore.OverlayCanvas.Width/2, APICore.OverlayCanvas.Height/2);
 
         private void PlaceTextboxWithText(string text)
         {
             _displayBlock.Text = text;
-            Point size = new Point(_displayBlock.ActualWidth, _displayBlock.ActualHeight);
-            Canvas.SetLeft(_displayBlock, _centreOfCanvas.X - (size.X/2));
-            Canvas.SetTop(_displayBlock, _centreOfCanvas.Y - (size.Y/2));
             _displayBlock.Visibility = Visibility.Visible;
             if (!APICore.OverlayCanvas.Children.Contains(_displayBlock))
                 APICore.OverlayCanvas.Children.Add(_displayBlock);
