@@ -17,7 +17,7 @@ namespace AnyfinCalculator
         public void OnLoad()
         {
             _calculator = new DamageCalculator();
-            _displayBlock = new HearthstoneTextBlock {FontSize = 18, Visibility = Visibility.Collapsed};
+            _displayBlock = new HearthstoneTextBlock {FontSize = 36, Visibility = Visibility.Collapsed};
             GameEvents.OnPlayerHandMouseOver.Add(OnMouseOver);
             GameEvents.OnMouseOverOff.Add(OnMouseOff);
             APICore.OverlayCanvas.SizeChanged += (sender, args) => RecalculateCentre();
@@ -35,8 +35,8 @@ namespace AnyfinCalculator
         {
             _displayBlock.Text = text;
             Point size = new Point(_displayBlock.ActualWidth, _displayBlock.ActualHeight);
-            Canvas.SetTop(_displayBlock, _centreOfCanvas.X - (size.X/2));
-            Canvas.SetLeft(_displayBlock, _centreOfCanvas.Y - (size.Y / 2));
+            Canvas.SetLeft(_displayBlock, _centreOfCanvas.X - (size.X/2));
+            Canvas.SetTop(_displayBlock, _centreOfCanvas.Y - (size.Y / 2));
             _displayBlock.Visibility = Visibility.Visible;
             if (!APICore.OverlayCanvas.Children.Contains(_displayBlock))
                 APICore.OverlayCanvas.Children.Add(_displayBlock);
