@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Windows.Documents;
 using Hearthstone_Deck_Tracker;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
@@ -13,22 +12,33 @@ namespace AnyfinCalculator
     internal class DamageCalculator
     {
         private readonly GraveyardHelper _helper = new GraveyardHelper(c => c.Race == "Murloc");
+
         public Range<int> CalculateDamageDealt()
-        { 
-            if (_helper.TrackedMinions.Count() + Core.Game.Player.Board.Count <= 7)
+        {
+            if (_helper.TrackedMinions.Count() + Core.Game.PlayerMinionCount <= 7)
             {
-                var damage = CalculateDamageInternal(_helper.TrackedMinions, Core.Game.Player.Board, Core.Game.Opponent.Board);
+                var damage = CalculateDamageInternal(_helper.TrackedMinions, Core.Game.Player.Board,
+                    Core.Game.Opponent.Board);
                 return new Range<int> {Maximum = damage, Minimum = damage};
             }
-            else
+            Stopwatch sw = Stopwatch.StartNew();
+            List<Card> murlocs = _helper.TrackedMinions.ToList();
+            List<CardEntity> board = Core.Game.Player.Board.ToList();
+            List<CardEntity> opponent = Core.Game.Opponent.Board.ToList();
+            int? min = null, max = null;
+            foreach (IEnumerable<Card> combination in Combinations(murlocs, 7 - Core.Game.PlayerMinionCount))
             {
-                //fuck
-                Log.Debug($"Currently there is {(_helper.TrackedMinions.Count() + Core.Game.Player.Board.Count)} minions on board!");
-                return new Range<int> {Maximum = -1, Minimum = -1};
+                int damage = CalculateDamageInternal(combination, board, opponent);
+                if (damage > max || !max.HasValue) max = damage;
+                if (damage < min || !min.HasValue) min = damage;
             }
+            sw.Stop();
+            Log.Debug($"Time to calculate the possibilities: {sw.Elapsed.ToString("ss:ffffff")}");
+            return new Range<int> {Maximum = max.Value, Minimum = min.Value};
         }
 
-        private static int CalculateDamageInternal(IEnumerable<Card> graveyard, IList<CardEntity> friendlyBoard, IEnumerable<CardEntity> opponentBoard)
+        private static int CalculateDamageInternal(IEnumerable<Card> graveyard, IList<CardEntity> friendlyBoard,
+            IEnumerable<CardEntity> opponentBoard)
         {
             List<Card> deadMurlocs = graveyard.ToList();
             List<Card> aliveMurlocs = friendlyBoard.Select(c => c.Entity.Card).Where(c => c.IsMurloc()).ToList();
@@ -52,7 +62,7 @@ namespace AnyfinCalculator
             /////////////////////////////////////////////////////////////////////////////////////////////////
             //NOTE: For the purposes of this algorithm, Murk-Eye's base attack is 1 and it counts itself!!!//
             /////////////////////////////////////////////////////////////////////////////////////////////////
-            
+
             damage -= aliveMurlocs.Count(Murlocs.IsWarleader)*2*(oldMurlocsThatCanAttack - 1);
             //same with grimscale, except it gives 1
             damage -= aliveMurlocs.Count(Murlocs.IsGrimscale)*(oldMurlocsThatCanAttack - 1);
@@ -83,7 +93,8 @@ namespace AnyfinCalculator
 
         private static bool CanAttack(CardEntity cardEntity)
         {
-            if (cardEntity.Entity.GetTag(GAME_TAG.CANT_ATTACK) == 1 || cardEntity.Entity.GetTag(GAME_TAG.FROZEN) == 1) return false;
+            if (cardEntity.Entity.GetTag(GAME_TAG.CANT_ATTACK) == 1 || cardEntity.Entity.GetTag(GAME_TAG.FROZEN) == 1)
+                return false;
             if (cardEntity.Entity.GetTag(GAME_TAG.EXHAUSTED) == 1)
                 //from reading the HDT source, it seems like internally Charge minions still have summoning sickness
                 return cardEntity.Entity.GetTag(GAME_TAG.CHARGE) == 1 &&
@@ -98,5 +109,13 @@ namespace AnyfinCalculator
             // if it has windfury it can attack twice, else it can only attack once
             return cardEntity.Entity.GetTag(GAME_TAG.WINDFURY) == 1 ? 2 : 1;
         }
+
+        public static IEnumerable<IEnumerable<T>> Combinations<T>(IEnumerable<T> elements, int k)
+        {
+            return k == 0 ? new[] { new T[0] } :
+              elements.SelectMany((e, i) =>
+                Combinations(elements.Skip(i + 1), k - 1).Select(c => (new[] { e }).Concat(c)));
+        }
+
     }
 }
