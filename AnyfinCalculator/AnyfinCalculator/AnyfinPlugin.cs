@@ -29,7 +29,7 @@ namespace AnyfinCalculator
         {
             APICore.OverlayCanvas.Children.Remove(_displayBlock);
             _displayBlock.Visibility = Visibility.Collapsed;
-            Debug.Log("Removed Anyfin textbox from screen.")
+            Log.Debug("Removed Anyfin textbox from screen.");
         }
 
         private void RecalculateCentre() => _centreOfCanvas = new Point(APICore.OverlayCanvas.Width/2, APICore.OverlayCanvas.Height/2);
@@ -43,7 +43,7 @@ namespace AnyfinCalculator
             _displayBlock.Visibility = Visibility.Visible;
             if (!APICore.OverlayCanvas.Children.Contains(_displayBlock))
                 APICore.OverlayCanvas.Children.Add(_displayBlock);
-            Log.Debug($"Textbox has been placed to display {text}.");
+            Log.Debug($"Textbox has been placed to display:\n '{text}'.");
         }
 
         private void OnMouseOver(Card card)
@@ -51,7 +51,8 @@ namespace AnyfinCalculator
             if (!card.IsAnyfin()) return;
             Log.Debug("Anyfin hover detected");
             Range<int> damageDealt = _calculator.CalculateDamageDealt();
-            PlaceTextboxWithText(damageDealt.Minimum == -1 ? "???" : damageDealt.ToString());
+            string friendlyText = damageDealt.Minimum == damageDealt.Maximum ? "" : "between ";
+            PlaceTextboxWithText($"Anyfin can deal {friendlyText}{damageDealt}");
         }
 
         public void OnUnload() { }
