@@ -39,7 +39,7 @@ namespace AnyfinCalculator
         public static bool IsWarleader(this Card card) => card.Id == MurlocWarleader.Id;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsOldMurkEye(this Card card) => card.Id == OldMurkEye.Id;
+        public static bool IsMurkEye(this Card card) => card.Id == OldMurkEye.Id;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsTidecaller(this Card card) => card.Id == MurlocTidecaller.Id;

@@ -13,7 +13,6 @@ namespace AnyfinCalculator
     public class AnyfinPlugin : IPlugin
     {
         private HearthstoneTextBlock _displayBlock;
-        private Point _centreOfCanvas;
         private DamageCalculator _calculator;
 
         public void OnLoad()

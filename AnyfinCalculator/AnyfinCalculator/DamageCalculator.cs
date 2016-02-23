@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows.Navigation;
 using Hearthstone_Deck_Tracker;
+using Hearthstone_Deck_Tracker.Annotations;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Utility.Logging;
@@ -33,64 +35,82 @@ namespace AnyfinCalculator
                 if (damage < min || !min.HasValue) min = damage;
             }
             sw.Stop();
-            Log.Debug($"Time to calculate the possibilities: {sw.Elapsed.ToString("ss:ffffff")}");
+            Log.Debug($"Time to calculate the possibilities: {sw.Elapsed.ToString("ss:fff")}");
             return new Range<int> {Maximum = max.Value, Minimum = min.Value};
         }
 
-        private static int CalculateDamageInternal(IEnumerable<Card> graveyard, IList<CardEntity> friendlyBoard,
+        private static int CalculateDamageInternal(IEnumerable<Card> graveyard, IEnumerable<CardEntity> friendlyBoard,
             IEnumerable<CardEntity> opponentBoard)
         {
             List<Card> deadMurlocs = graveyard.ToList();
-            List<Card> aliveMurlocs = friendlyBoard.Select(c => c.Entity.Card).Where(c => c.IsMurloc()).ToList();
-            List<CardEntity> possibleAliveAttackers =
-                friendlyBoard.Where(ce => ce.Entity.Card.IsMurloc() && CanAttack(ce)).ToList();
-            List<Card> possibleAliveAttackerCards = possibleAliveAttackers.Select(ce => ce.Entity.Card).ToList();
-            List<Card> allFriendlyMurlocs = deadMurlocs.Concat(aliveMurlocs).ToList();
-            List<Card> opponentMurlocs = opponentBoard.Select(c => c.Entity.Card).Where(Murlocs.IsMurloc).ToList();
-            List<Card> allMurlocs = allFriendlyMurlocs.Concat(opponentMurlocs).ToList();
-            Log.Debug(possibleAliveAttackerCards.Aggregate("", (s, card) => s + card.Name + " "));
-            // murlocs on board that can attack + charge murlocs that will be summoned = murlocs that can attack
-            int chargeMurlocsToBeSummoned = deadMurlocs.Count(Murlocs.IsChargeMurloc);
-            int oldMurlocsThatCanAttack = possibleAliveAttackerCards.Count;
-            int totalAttackableMurlocs = chargeMurlocsToBeSummoned + oldMurlocsThatCanAttack;
-            //sum up the attack of all murlocs that can attack currently on the board
-            int damage = possibleAliveAttackers.Sum(card => card.Entity.GetTag(GAME_TAG.ATK));
-            //that felt bad, deleting an hour's work
-            //let's do this counting algorhithm another way
-            //get base attack and then reapply effect on all
-            //every warleader gives 2 to every alive murloc except itself
-
-            /////////////////////////////////////////////////////////////////////////////////////////////////
-            //NOTE: For the purposes of this algorithm, Murk-Eye's base attack is 1 and it counts itself!!!//
-            /////////////////////////////////////////////////////////////////////////////////////////////////
-
-            damage -= aliveMurlocs.Count(Murlocs.IsWarleader)*2*(Math.Max(oldMurlocsThatCanAttack - 1, 0));
-            //same with grimscale, except it gives 1
-            damage -= aliveMurlocs.Count(Murlocs.IsGrimscale)*(Math.Max(oldMurlocsThatCanAttack - 1, 0));
-            //each murk eye needs 1 off for each murloc
-            damage -= possibleAliveAttackerCards.Count(Murlocs.IsOldMurkEye)*allMurlocs.Count;
-            //also take into account opponent's warleaders and grimscales
-            damage -= opponentMurlocs.Count(Murlocs.IsWarleader)*2*oldMurlocsThatCanAttack;
-            damage -= opponentMurlocs.Count(Murlocs.IsGrimscale)*oldMurlocsThatCanAttack;
-
-            //REMEMBER: FOR THIS ALGO MURK-EYE'S BASE IS 1
-            damage += deadMurlocs.Count(Murlocs.IsOldMurkEye);
-            damage += deadMurlocs.Count(Murlocs.IsBluegill)*2;
-            //warleader and grimscale buff ALL murlocs
-            damage += allMurlocs.Count(Murlocs.IsWarleader)*2*totalAttackableMurlocs;
-            //but a warleader can't buff itself!
-            damage -= possibleAliveAttackerCards.Count(Murlocs.IsWarleader)*2;
-            //same shit for grimscale, at 1x instead of 2x
-            damage += allMurlocs.Count(Murlocs.IsGrimscale)*totalAttackableMurlocs;
-            damage -= possibleAliveAttackerCards.Count(Murlocs.IsGrimscale);
-            //and then let murk eye get buffed
-            damage += (allFriendlyMurlocs.Count + opponentMurlocs.Count)*
-                      allFriendlyMurlocs.Count(Murlocs.IsOldMurkEye);
-            //edgecase of tidecallers, too
-            damage += possibleAliveAttackerCards.Count(Murlocs.IsTidecaller)*
-                      Math.Min(deadMurlocs.Count, 7 - friendlyBoard.Count());
-            return damage;
+            List<CardEntity> aliveMurlocs = friendlyBoard.Where(c => c.Entity.Card.IsMurloc()).ToList();
+            List<CardEntity> opponentMurlocs = opponentBoard.Where(c => c.Entity.Card.IsMurloc()).ToList();
+            //compiles together into one big freaking list
+            List<MurlocInfo> murlocs =
+                deadMurlocs.Select(
+                    c =>
+                        new MurlocInfo
+                        {
+                            AreBuffsApplied = false,
+                            Attack = c.Attack,
+                            BoardState = MurlocInfo.State.Dead,
+                            CanAttack = c.IsChargeMurloc(),
+                            IsSilenced = false,
+                            Murloc = c
+                        })
+                    .Concat(
+                        aliveMurlocs.Select(
+                            ce =>
+                                new MurlocInfo
+                                {
+                                    AreBuffsApplied = true,
+                                    Attack = ce.Entity.GetTag(GAME_TAG.ATK),
+                                    BoardState = MurlocInfo.State.OnBoard,
+                                    CanAttack = CanAttack(ce),
+                                    IsSilenced = IsSilenced(ce),
+                                    Murloc = ce.Entity.Card
+                                }))
+                    .Concat(
+                        opponentMurlocs.Select(
+                            ce =>
+                                new MurlocInfo
+                                {
+                                    AreBuffsApplied = false,
+                                    Attack = ce.Entity.Card.Attack,
+                                    BoardState = MurlocInfo.State.OnOpponentsBoard,
+                                    CanAttack = false,
+                                    IsSilenced = IsSilenced(ce),
+                                    Murloc = ce.Entity.Card
+                                })).ToList();
+            int nonSilencedWarleaders =
+                murlocs.Count(m => m.BoardState != MurlocInfo.State.Dead && m.Murloc.IsWarleader() && !m.IsSilenced);
+            int nonSilencedGrimscales =
+                murlocs.Count(m => m.BoardState != MurlocInfo.State.Dead && m.Murloc.IsGrimscale() && !m.IsSilenced);
+            foreach (MurlocInfo murloc in murlocs.Where(t => t.AreBuffsApplied))
+            {
+                murloc.AreBuffsApplied = false;
+                murloc.Attack -= nonSilencedGrimscales + (nonSilencedWarleaders*2);
+                if (murloc.IsSilenced) continue;
+                if (murloc.Murloc.IsGrimscale()) murloc.Attack += 1;
+                if (murloc.Murloc.IsWarleader()) murloc.Attack += 2;
+                if (murloc.Murloc.IsMurkEye()) murloc.Attack -= (murlocs.Count - 1);
+            }
+            nonSilencedWarleaders += murlocs.Count(m => m.BoardState == MurlocInfo.State.Dead && m.Murloc.IsWarleader());
+            nonSilencedGrimscales += murlocs.Count(m => m.BoardState == MurlocInfo.State.Dead && m.Murloc.IsGrimscale());
+            foreach (MurlocInfo murloc in murlocs)
+            {
+                murloc.AreBuffsApplied = true;
+                murloc.Attack += nonSilencedGrimscales + (nonSilencedWarleaders*2);
+                if (murloc.IsSilenced) continue;
+                if (murloc.Murloc.IsWarleader()) murloc.Attack -= 2;
+                if (murloc.Murloc.IsGrimscale()) murloc.Attack -= 1;
+                if (murloc.Murloc.IsMurkEye()) murloc.Attack += (murlocs.Count - 1);
+            }
+            Log.Debug(murlocs.Aggregate("", (s, m) => s + $"{m.Murloc.Name}{(m.IsSilenced?" (Silenced)":"")}: {m.Attack} {(!m.CanAttack ? "(Can't Attack)" : "")}\n"));
+            return murlocs.Sum(m => m.CanAttack ? m.Attack : 0);
         }
+
+        private static bool IsSilenced(CardEntity cardEntity) => cardEntity.Entity.GetTag(GAME_TAG.SILENCED) == 1;
 
         private static bool CanAttack(CardEntity cardEntity)
         {

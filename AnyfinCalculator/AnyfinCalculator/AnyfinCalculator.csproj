@@ -54,6 +54,7 @@
     <Compile Include="AnyfinPlugin.cs" />
     <Compile Include="DamageCalculator.cs" />
     <Compile Include="GraveyardHelper.cs" />
+    <Compile Include="MurlocInfo.cs" />
     <Compile Include="Murlocs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Range.cs" />
