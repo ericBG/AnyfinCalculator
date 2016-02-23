@@ -68,7 +68,7 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>if exist "C:\Users\EricAlejandro\Documents\GitHub\HearthstoneDeckTracker\Hearthstone Deck Tracker\bin\Debug\Plugins\AnyfinCalculator.dll" del "C:\Users\EricAlejandro\Documents\GitHub\HearthstoneDeckTracker\Hearthstone Deck Tracker\bin\Debug\PluginsAnyfinCalculator.dll"
+    <PostBuildEvent>if $(ConfigurationName) == Debug if exist "C:\Users\EricAlejandro\Documents\GitHub\HearthstoneDeckTracker\Hearthstone Deck Tracker\bin\Debug\Plugins\AnyfinCalculator.dll" del "C:\Users\EricAlejandro\Documents\GitHub\HearthstoneDeckTracker\Hearthstone Deck Tracker\bin\Debug\PluginsAnyfinCalculator.dll"
 copy "$(ProjectDir)$(OutDir)$(TargetFileName)" "C:\Users\EricAlejandro\Documents\GitHub\HearthstoneDeckTracker\Hearthstone Deck Tracker\bin\Debug\Plugins\AnyfinCalculator.dll"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
