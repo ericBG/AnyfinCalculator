@@ -9,7 +9,6 @@ namespace AnyfinCalculator
     public class GraveyardHelper
     {
         private readonly Predicate<Card> _shouldBeTracked;
-        private List<Card> _checkedMinions = new List<Card>();
 
         public GraveyardHelper(Predicate<Card> shouldBeTracked = null)
         {
