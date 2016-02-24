@@ -117,7 +117,7 @@ namespace AnyfinCalculator
                 //from reading the HDT source, it seems like internally Charge minions still have summoning sickness
                 return cardEntity.Entity.GetTag(GAME_TAG.CHARGE) == 1 &&
                        cardEntity.Entity.GetTag(GAME_TAG.NUM_ATTACKS_THIS_TURN) < MaxAttacks(cardEntity);
-            return true;
+            return cardEntity.Entity.GetTag(GAME_TAG.NUM_ATTACKS_THIS_TURN) < MaxAttacks(cardEntity);
         }
 
         private static int MaxAttacks(CardEntity cardEntity)
