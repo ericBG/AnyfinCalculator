@@ -83,6 +83,7 @@ namespace AnyfinCalculator
                 murlocs.Count(m => m.BoardState != MurlocInfo.State.Dead && m.Murloc.IsWarleader() && !m.IsSilenced);
             int nonSilencedGrimscales =
                 murlocs.Count(m => m.BoardState != MurlocInfo.State.Dead && m.Murloc.IsGrimscale() && !m.IsSilenced);
+            int murlocsToBeSummoned = murlocs.Count(m => m.BoardState == MurlocInfo.State.Dead);
             foreach (MurlocInfo murloc in murlocs.Where(t => t.AreBuffsApplied))
             {
                 murloc.AreBuffsApplied = false;
@@ -102,6 +103,7 @@ namespace AnyfinCalculator
                 if (murloc.Murloc.IsWarleader()) murloc.Attack -= 2;
                 if (murloc.Murloc.IsGrimscale()) murloc.Attack -= 1;
                 if (murloc.Murloc.IsMurkEye()) murloc.Attack += (murlocs.Count - 1);
+                if (murloc.Murloc.IsTidecaller()) murloc.Attack += murlocsToBeSummoned;
             }
             Log.Debug(murlocs.Aggregate("", (s, m) => s + $"{m.Murloc.Name}{(m.IsSilenced?" (Silenced)":"")}: {m.Attack} {(!m.CanAttack ? "(Can't Attack)" : "")}\n"));
             return murlocs.Sum(m => m.CanAttack ? m.Attack : 0);
