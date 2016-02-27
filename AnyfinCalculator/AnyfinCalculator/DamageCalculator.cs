@@ -32,7 +32,7 @@ namespace AnyfinCalculator
                 if (damage < min || !min.HasValue) min = damage;
             }
             sw.Stop();
-            Log.Debug($"Time to calculate the possibilities: {sw.Elapsed.ToString("ss:fff")}");
+            Log.Debug($"Time to calculate the possibilities: {sw.Elapsed.ToString("ss\\:fff")}");
             return new Range<int> {Maximum = max.Value, Minimum = min.Value};
         }
 
