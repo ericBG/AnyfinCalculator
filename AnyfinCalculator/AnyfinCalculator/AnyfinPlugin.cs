@@ -47,8 +47,12 @@ namespace AnyfinCalculator
             PlaceTextboxWithText($"Anyfin can deal {friendlyText}{damageDealt}");
         }
 
+        public void OnButtonPress()
+        {
+            MessageBox.Show("There is currently no options for this plugin.");
+        }
+
         public void OnUnload() { }
-        public void OnButtonPress() { }
         public void OnUpdate() { }
 
         public string Name => "Anyfin Can Happen Calculator 1.0.0";
