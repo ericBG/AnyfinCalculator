@@ -6,6 +6,7 @@ using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Plugins;
 using Hearthstone_Deck_Tracker.Utility.Logging;
+using MahApps.Metro.Controls.Dialogs;
 using APICore = Hearthstone_Deck_Tracker.API.Core;
 
 namespace AnyfinCalculator
@@ -47,9 +48,9 @@ namespace AnyfinCalculator
             PlaceTextboxWithText($"Anyfin can deal {friendlyText}{damageDealt}");
         }
 
-        public void OnButtonPress()
+        public async void OnButtonPress()
         {
-            MessageBox.Show("There is currently no options for this plugin.");
+            await APICore.MainWindow.ShowMessageAsync("Warning", "There is currently no options for this plugin.");
         }
 
         public void OnUnload() { }

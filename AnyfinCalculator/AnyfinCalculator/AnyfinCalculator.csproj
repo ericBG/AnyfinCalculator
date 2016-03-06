@@ -37,6 +37,9 @@
     <Reference Include="HearthstoneDeckTracker">
       <HintPath>..\..\..\HearthstoneDeckTracker\Hearthstone Deck Tracker\bin\Debug\HearthstoneDeckTracker.exe</HintPath>
     </Reference>
+    <Reference Include="MahApps.Metro">
+      <HintPath>..\..\..\Hearthstone-Deck-Tracker\Hearthstone Deck Tracker\bin\Debug\MahApps.Metro.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
