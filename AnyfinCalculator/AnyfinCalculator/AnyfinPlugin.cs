@@ -56,7 +56,7 @@ namespace AnyfinCalculator
         public void OnUnload() { }
         public void OnUpdate() { }
 
-        public string Name => "Anyfin Can Happen Calculator 1.0.0";
+        public string Name => "Anyfin Can Happen Calculator";
 
         public string Description
             => "Anyfin Can Happen Calculator is a plugin for Hearthstone Deck Tracker which allows you to quickly and easily figure out the damage "
@@ -64,7 +64,7 @@ namespace AnyfinCalculator
 
         public string ButtonText => "Options";
         public string Author => "ericBG";
-        public Version Version => new Version(1, 0, 0);
+        public Version Version => new Version(1, 0, 2);
         public MenuItem MenuItem => null;
     }
 }
