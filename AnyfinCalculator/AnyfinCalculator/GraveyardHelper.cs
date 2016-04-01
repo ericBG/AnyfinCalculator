@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.API;
+using Hearthstone_Deck_Tracker.Hearthstone.Entities;
 
 namespace AnyfinCalculator
 {
@@ -16,8 +17,8 @@ namespace AnyfinCalculator
         }
 
         public IEnumerable<Card> TrackedMinions
-            => (Core.Game.Player.Graveyard ?? Enumerable.Empty<CardEntity>()).Select(ce => ce.Entity.Card)
-                .Concat((Core.Game.Opponent.Graveyard ?? Enumerable.Empty<CardEntity>()).Select(ce => ce.Entity.Card))
+            => (Core.Game.Player.Graveyard ?? Enumerable.Empty<Entity>()).Select(ce => ce.Card)
+                .Concat((Core.Game.Opponent.Graveyard ?? Enumerable.Empty<Entity>()).Select(ce => ce.Card))
                 .Where(thisShouldBeAPredicate => _shouldBeTracked(thisShouldBeAPredicate));
     }
 }

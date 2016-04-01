@@ -4,6 +4,8 @@ using System.Linq;
 using Hearthstone_Deck_Tracker;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
+using Hearthstone_Deck_Tracker.Hearthstone.Entities;
+using Hearthstone_Deck_Tracker.Replay.Controls;
 using Hearthstone_Deck_Tracker.Utility.Logging;
 
 namespace AnyfinCalculator
@@ -22,8 +24,8 @@ namespace AnyfinCalculator
             }
             Stopwatch sw = Stopwatch.StartNew();
             List<Card> murlocs = _helper.TrackedMinions.ToList();
-            List<CardEntity> board = Core.Game.Player.Board.ToList();
-            List<CardEntity> opponent = Core.Game.Opponent.Board.ToList();
+            List<Entity> board = Core.Game.Player.Board.ToList();
+            List<Entity> opponent = Core.Game.Opponent.Board.ToList();
             int? min = null, max = null;
             foreach (IEnumerable<Card> combination in Combinations(murlocs, 7 - Core.Game.PlayerMinionCount))
             {
@@ -36,12 +38,12 @@ namespace AnyfinCalculator
             return new Range<int> {Maximum = max.Value, Minimum = min.Value};
         }
 
-        private static int CalculateDamageInternal(IEnumerable<Card> graveyard, IEnumerable<CardEntity> friendlyBoard,
-            IEnumerable<CardEntity> opponentBoard)
+        private static int CalculateDamageInternal(IEnumerable<Card> graveyard, IEnumerable<Entity> friendlyBoard,
+            IEnumerable<Entity> opponentBoard)
         {
             List<Card> deadMurlocs = graveyard.ToList();
-            List<CardEntity> aliveMurlocs = friendlyBoard.Where(c => c.Entity.Card.IsMurloc()).ToList();
-            List<CardEntity> opponentMurlocs = opponentBoard.Where(c => c.Entity.Card.IsMurloc()).ToList();
+            List<Entity> aliveMurlocs = friendlyBoard.Where(c => c.Card.IsMurloc()).ToList();
+            List<Entity> opponentMurlocs = opponentBoard.Where(c => c.Card.IsMurloc()).ToList();
             //compiles together into one big freaking list
             List<MurlocInfo> murlocs =
                 deadMurlocs.Select(
@@ -57,27 +59,27 @@ namespace AnyfinCalculator
                         })
                     .Concat(
                         aliveMurlocs.Select(
-                            ce =>
+                            ent =>
                                 new MurlocInfo
                                 {
                                     AreBuffsApplied = true,
-                                    Attack = ce.Entity.GetTag(GAME_TAG.ATK),
+                                    Attack = ent.GetTag(GAME_TAG.ATK),
                                     BoardState = MurlocInfo.State.OnBoard,
-                                    CanAttack = CanAttack(ce),
-                                    IsSilenced = IsSilenced(ce),
-                                    Murloc = ce.Entity.Card
+                                    CanAttack = CanAttack(ent),
+                                    IsSilenced = IsSilenced(ent),
+                                    Murloc = ent.Card
                                 }))
                     .Concat(
                         opponentMurlocs.Select(
-                            ce =>
+                            ent =>
                                 new MurlocInfo
                                 {
                                     AreBuffsApplied = false,
-                                    Attack = ce.Entity.Card.Attack,
+                                    Attack = ent.Card.Attack,
                                     BoardState = MurlocInfo.State.OnOpponentsBoard,
                                     CanAttack = false,
-                                    IsSilenced = IsSilenced(ce),
-                                    Murloc = ce.Entity.Card
+                                    IsSilenced = IsSilenced(ent),
+                                    Murloc = ent.Card
                                 })).ToList();
             int nonSilencedWarleaders =
                 murlocs.Count(m => m.BoardState != MurlocInfo.State.Dead && m.Murloc.IsWarleader() && !m.IsSilenced);
@@ -109,25 +111,25 @@ namespace AnyfinCalculator
             return murlocs.Sum(m => m.CanAttack ? m.Attack : 0);
         }
 
-        private static bool IsSilenced(CardEntity cardEntity) => cardEntity.Entity.GetTag(GAME_TAG.SILENCED) == 1;
+        private static bool IsSilenced(Entity entity) => entity.GetTag(GAME_TAG.SILENCED) == 1;
 
-        private static bool CanAttack(CardEntity cardEntity)
+        private static bool CanAttack(Entity entity)
         {
-            if (cardEntity.Entity.GetTag(GAME_TAG.CANT_ATTACK) == 1 || cardEntity.Entity.GetTag(GAME_TAG.FROZEN) == 1)
+            if (entity.GetTag(GAME_TAG.CANT_ATTACK) == 1 || entity.GetTag(GAME_TAG.FROZEN) == 1)
                 return false;
-            if (cardEntity.Entity.GetTag(GAME_TAG.EXHAUSTED) == 1)
+            if (entity.GetTag(GAME_TAG.EXHAUSTED) == 1)
                 //from reading the HDT source, it seems like internally Charge minions still have summoning sickness
-                return cardEntity.Entity.GetTag(GAME_TAG.CHARGE) == 1 &&
-                       cardEntity.Entity.GetTag(GAME_TAG.NUM_ATTACKS_THIS_TURN) < MaxAttacks(cardEntity);
-            return cardEntity.Entity.GetTag(GAME_TAG.NUM_ATTACKS_THIS_TURN) < MaxAttacks(cardEntity);
+                return entity.GetTag(GAME_TAG.CHARGE) == 1 &&
+                       entity.GetTag(GAME_TAG.NUM_ATTACKS_THIS_TURN) < MaxAttacks(entity);
+            return entity.GetTag(GAME_TAG.NUM_ATTACKS_THIS_TURN) < MaxAttacks(entity);
         }
 
-        private static int MaxAttacks(CardEntity cardEntity)
+        private static int MaxAttacks(Entity entity)
         {
             // GVG_111t == V-07-TR-0N (MegaWindfury, 4x attack)
-            if (cardEntity.CardId == "GVG_111t") return 4;
+            if (entity.CardId == "GVG_111t") return 4;
             // if it has windfury it can attack twice, else it can only attack once
-            return cardEntity.Entity.GetTag(GAME_TAG.WINDFURY) == 1 ? 2 : 1;
+            return entity.GetTag(GAME_TAG.WINDFURY) == 1 ? 2 : 1;
         }
 
         public static IEnumerable<IEnumerable<T>> Combinations<T>(IEnumerable<T> elements, int k)
