@@ -48,10 +48,7 @@ namespace AnyfinCalculator
             PlaceTextboxWithText($"Anyfin can deal {friendlyText}{damageDealt}");
         }
 
-        public async void OnButtonPress()
-        {
-            await APICore.MainWindow.ShowMessageAsync("Warning", "There is currently no options for this plugin.");
-        }
+        public async void OnButtonPress() => await APICore.MainWindow.ShowMessageAsync("Warning", "There is currently no options for this plugin.");
 
         public void OnUnload() { }
         public void OnUpdate() { }

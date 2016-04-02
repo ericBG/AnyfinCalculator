@@ -5,7 +5,6 @@ using Hearthstone_Deck_Tracker;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Hearthstone.Entities;
-using Hearthstone_Deck_Tracker.Replay.Controls;
 using Hearthstone_Deck_Tracker.Utility.Logging;
 
 namespace AnyfinCalculator
@@ -93,7 +92,7 @@ namespace AnyfinCalculator
                 if (murloc.IsSilenced) continue;
                 if (murloc.Murloc.IsGrimscale()) murloc.Attack += 1;
                 if (murloc.Murloc.IsWarleader()) murloc.Attack += 2;
-                if (murloc.Murloc.IsMurkEye()) murloc.Attack -= (murlocs.Count - 1);
+                if (murloc.Murloc.IsMurkEye()) murloc.Attack -= (murlocs.Count(m => m.BoardState != MurlocInfo.State.Dead) - 1);
             }
             nonSilencedWarleaders += murlocs.Count(m => m.BoardState == MurlocInfo.State.Dead && m.Murloc.IsWarleader());
             nonSilencedGrimscales += murlocs.Count(m => m.BoardState == MurlocInfo.State.Dead && m.Murloc.IsGrimscale());
