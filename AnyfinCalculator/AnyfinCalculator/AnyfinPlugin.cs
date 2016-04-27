@@ -61,7 +61,7 @@ namespace AnyfinCalculator
 
         public string ButtonText => "Options";
         public string Author => "ericBG";
-        public Version Version => new Version(1, 0, 4);
+        public Version Version => new Version(1, 0, 5);
         public MenuItem MenuItem => null;
     }
 }
