@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using HearthDb.Enums;
 using Hearthstone_Deck_Tracker;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
@@ -62,7 +63,7 @@ namespace AnyfinCalculator
                                 new MurlocInfo
                                 {
                                     AreBuffsApplied = true,
-                                    Attack = ent.GetTag(GAME_TAG.ATK),
+                                    Attack = ent.GetTag(GameTag.ATK),
                                     BoardState = MurlocInfo.State.OnBoard,
                                     CanAttack = CanAttack(ent),
                                     IsSilenced = IsSilenced(ent),
@@ -110,17 +111,17 @@ namespace AnyfinCalculator
             return murlocs.Sum(m => m.CanAttack ? m.Attack : 0);
         }
 
-        private static bool IsSilenced(Entity entity) => entity.GetTag(GAME_TAG.SILENCED) == 1;
+        private static bool IsSilenced(Entity entity) => entity.GetTag(GameTag.SILENCED) == 1;
 
         private static bool CanAttack(Entity entity)
         {
-            if (entity.GetTag(GAME_TAG.CANT_ATTACK) == 1 || entity.GetTag(GAME_TAG.FROZEN) == 1)
+            if (entity.GetTag(GameTag.CANT_ATTACK) == 1 || entity.GetTag(GameTag.FROZEN) == 1)
                 return false;
-            if (entity.GetTag(GAME_TAG.EXHAUSTED) == 1)
+            if (entity.GetTag(GameTag.EXHAUSTED) == 1)
                 //from reading the HDT source, it seems like internally Charge minions still have summoning sickness
-                return entity.GetTag(GAME_TAG.CHARGE) == 1 &&
-                       entity.GetTag(GAME_TAG.NUM_ATTACKS_THIS_TURN) < MaxAttacks(entity);
-            return entity.GetTag(GAME_TAG.NUM_ATTACKS_THIS_TURN) < MaxAttacks(entity);
+                return entity.GetTag(GameTag.CHARGE) == 1 &&
+                       entity.GetTag(GameTag.NUM_ATTACKS_THIS_TURN) < MaxAttacks(entity);
+            return entity.GetTag(GameTag.NUM_ATTACKS_THIS_TURN) < MaxAttacks(entity);
         }
 
         private static int MaxAttacks(Entity entity)
@@ -128,7 +129,7 @@ namespace AnyfinCalculator
             // GVG_111t == V-07-TR-0N (MegaWindfury, 4x attack)
             if (entity.CardId == "GVG_111t") return 4;
             // if it has windfury it can attack twice, else it can only attack once
-            return entity.GetTag(GAME_TAG.WINDFURY) == 1 ? 2 : 1;
+            return entity.GetTag(GameTag.WINDFURY) == 1 ? 2 : 1;
         }
 
         public static IEnumerable<IEnumerable<T>> Combinations<T>(IEnumerable<T> elements, int k)
