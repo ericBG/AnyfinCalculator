@@ -1,67 +1,156 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Xml;
+using System.Xml.Serialization;
 using Hearthstone_Deck_Tracker;
 using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Plugins;
 using Hearthstone_Deck_Tracker.Utility.Logging;
 using MahApps.Metro.Controls.Dialogs;
-using APICore = Hearthstone_Deck_Tracker.API.Core;
+using Card = Hearthstone_Deck_Tracker.Hearthstone.Card;
+using Core = Hearthstone_Deck_Tracker.API.Core;
 
 namespace AnyfinCalculator
 {
-    public class AnyfinPlugin : IPlugin
-    {
-        private HearthstoneTextBlock _displayBlock;
-        private DamageCalculator _calculator;
+	public class AnyfinPlugin : IPlugin
+	{
+		private DamageCalculator _calculator;
+		private AnyfinConfig _config;
+		private HearthstoneTextBlock _displayBlock;
+		private AnyfinDisplay _display;
+		//todo: this
+		private CardToolTip _toolTip;
+		private StackPanel _toolTipsPanel;
+		private bool _inAnyfinGame;
 
-        public void OnLoad()
-        {
-            _displayBlock = new HearthstoneTextBlock {FontSize = 36, Visibility = Visibility.Collapsed};
-            _calculator = new DamageCalculator();
-            GameEvents.OnPlayerHandMouseOver.Add(OnMouseOver);
-            GameEvents.OnMouseOverOff.Add(OnMouseOff);
-        }
+		public void OnLoad()
+		{
+			_displayBlock = new HearthstoneTextBlock { FontSize = 36, Visibility = Visibility.Collapsed };
+			_calculator = new DamageCalculator();
+			ConfigHandler();
+			_display = new AnyfinDisplay(_config) { Visibility = Visibility.Collapsed };
+			_toolTip = new CardToolTip();
+			_toolTipsPanel = new StackPanel();
 
-        private void OnMouseOff()
-        {
-            _displayBlock.Visibility = Visibility.Collapsed;
-            APICore.OverlayCanvas.Children.Remove(_displayBlock);
-        }
+			GameEvents.OnPlayerHandMouseOver.Add(OnMouseOver);
+			GameEvents.OnMouseOverOff.Add(OnMouseOff);
 
-        private void PlaceTextboxWithText(string text)
-        {
-            _displayBlock.Text = text;
-            _displayBlock.Visibility = Visibility.Visible;
-            if (!APICore.OverlayCanvas.Children.Contains(_displayBlock))
-                APICore.OverlayCanvas.Children.Add(_displayBlock);
-            Log.Debug($"Textbox has been placed to display:\n '{text}'.");
-        }
+			GameEvents.OnGameStart.Add(OnGameStart);
+			GameEvents.OnGameEnd.Add(OnGameEnd);
+			GameEvents.OnOpponentPlayToGraveyard.Add(UpdateDisplay);
+			GameEvents.OnPlayerPlayToGraveyard.Add(UpdateDisplay);
+			GameEvents.OnPlayerPlay.Add(UpdateDisplay);
+			GameEvents.OnOpponentPlay.Add(UpdateDisplay);
+			DeckManagerEvents.OnDeckSelected.Add(OnGameStart);
 
-        private void OnMouseOver(Card card)
-        {
-            if (!card.IsAnyfin()) return;
-            Log.Debug("Anyfin hover detected");
-            Range<int> damageDealt = _calculator.CalculateDamageDealt();
-            string friendlyText = damageDealt.Minimum == damageDealt.Maximum ? "" : "between ";
-            PlaceTextboxWithText($"Anyfin can deal {friendlyText}{damageDealt}");
-        }
+			Core.OverlayCanvas.Children.Add(_display);
+			if (!Core.Game.IsInMenu)
+			OnGameStart();
+		}
 
-        public async void OnButtonPress() => await APICore.MainWindow.ShowMessageAsync("Warning", "There is currently no options for this plugin.");
+		#region New Mode
 
-        public void OnUnload() { }
-        public void OnUpdate() { }
+		private void OnGameEnd()
+		{
+			_inAnyfinGame = false;
+			_display.Visibility = Visibility.Collapsed;
+		}
 
-        public string Name => "Anyfin Can Happen Calculator";
+		private void OnGameStart(Deck obj) => OnGameStart();
 
-        public string Description
-            => "Anyfin Can Happen Calculator is a plugin for Hearthstone Deck Tracker which allows you to quickly and easily figure out the damage "
-                + "(or damage range) that playing Anyfin Can Happen will have on your current board. \n For any questions or issues look at github.com/ericBG/AnyfinCalculator";
+		private void OnGameStart()
+		{
+			if (!(DeckList.Instance?.ActiveDeck.Cards.Contains(Murlocs.AnyfinCanHappen) ?? false)) return;
+			_inAnyfinGame = true;
+			UpdateDisplay(null);
+		}
 
-        public string ButtonText => "Options";
-        public string Author => "ericBG";
-        public Version Version => new Version(1, 0, 5);
-        public MenuItem MenuItem => null;
-    }
+		private void UpdateDisplay(Card c)
+		{
+			if (!_inAnyfinGame) return;
+			Range<int> range = _calculator.CalculateDamageDealt();
+			_display.DamageText = $"{range.Minimum}\n{range.Maximum}";
+			if (_display.Visibility == Visibility.Collapsed)
+				_display.Visibility = _calculator.DeadMurlocs.Any() ? Visibility.Visible : Visibility.Collapsed;
+		}
+
+		#endregion
+
+		public async void OnButtonPress()
+			=> await Core.MainWindow.ShowMessageAsync("Warning", "There is currently no options for this plugin.");
+
+		public void OnUnload()
+		{
+		}
+
+		public void OnUpdate()
+		{
+		}
+
+		public string Name => "Anyfin Can Happen Calculator";
+
+		public string Description
+			=>
+				"Anyfin Can Happen Calculator is a plugin for Hearthstone Deck Tracker which allows you to quickly and easily figure out the damage " +
+				"(or damage range) that playing Anyfin Can Happen will have on your current board. \n For any questions or issues look at github.com/ericBG/AnyfinCalculator";
+
+		public string ButtonText => "Options";
+		public string Author => "ericBG";
+		public Version Version => new Version(1, 0, 6);
+		public MenuItem MenuItem => null;
+
+		private void ConfigHandler()
+		{
+			if (File.Exists(AnyfinConfig.ConfigLocation))
+			{
+				using (var fs = File.OpenRead(AnyfinConfig.ConfigLocation))
+				using (var r = XmlReader.Create(fs))
+				{
+					var x = new XmlSerializer(typeof(AnyfinConfig));
+					if (!x.CanDeserialize(r)) _config = new AnyfinConfig();
+					else _config = (AnyfinConfig)x.Deserialize(r);
+				}
+			}
+			else
+			{
+				using (var fs = File.OpenWrite(AnyfinConfig.ConfigLocation))
+				{
+					var x = new XmlSerializer(typeof(AnyfinConfig));
+					x.Serialize(fs, (_config = new AnyfinConfig()));
+				}
+			}
+		}
+
+		#region Classic Mode
+
+		private void OnMouseOff()
+		{
+			_displayBlock.Visibility = Visibility.Collapsed;
+			Core.OverlayCanvas.Children.Remove(_displayBlock);
+		}
+
+		private void PlaceTextboxWithText(string text)
+		{
+			_displayBlock.Text = text;
+			_displayBlock.Visibility = Visibility.Visible;
+			if (!Core.OverlayCanvas.Children.Contains(_displayBlock))
+				Core.OverlayCanvas.Children.Add(_displayBlock);
+			Log.Debug($"Textbox has been placed to display:\n '{text}'.");
+		}
+
+		private void OnMouseOver(Card card)
+		{
+			if (!card.IsAnyfin() || !_config.ClassicMode) return;
+			Log.Debug("Anyfin hover detected");
+			var damageDealt = _calculator.CalculateDamageDealt();
+			var friendlyText = damageDealt.Minimum == damageDealt.Maximum ? "" : "between ";
+			PlaceTextboxWithText($"Anyfin can deal {friendlyText}{damageDealt}");
+		}
+
+		#endregion
+	}
 }
