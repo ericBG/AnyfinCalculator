@@ -41,10 +41,16 @@ namespace AnyfinCalculator
 		private void ConfigSizeChanged(object sender, PropertyChangedEventArgs e)
 		{
 			if (e?.PropertyName == "IconX" || ReferenceEquals(sender, this))
-				Canvas.SetLeft(this,
-					Helper.GetScaledXPos(_config.IconX/100, (int) Core.OverlayCanvas.Width, ScreenRatio));
+				if (_config.XFromRight)
+					Canvas.SetRight(this, Helper.GetScaledXPos(_config.IconX / 100, (int)Core.OverlayCanvas.Width, ScreenRatio));
+				else
+					Canvas.SetLeft(this, Helper.GetScaledXPos(_config.IconX / 100, (int)Core.OverlayCanvas.Width, ScreenRatio));
+
 			if (e?.PropertyName == "IconY" || ReferenceEquals(sender, this))
-				Canvas.SetTop(this, Core.OverlayCanvas.Height*(_config.IconY/100));
+				if(_config.YFromBottom)
+					Canvas.SetBottom(this, Core.OverlayCanvas.Height * (_config.IconY / 100));
+				else
+					Canvas.SetTop(this, Core.OverlayCanvas.Height*(_config.IconY/100));
 		}
 
 		[NotifyPropertyChangedInvocator]

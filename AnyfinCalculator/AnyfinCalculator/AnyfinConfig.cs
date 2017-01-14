@@ -15,11 +15,15 @@ namespace AnyfinCalculator
 
 		private double _iconX;
 		private double _iconY;
+		private bool _yFromBottom;
+		private bool _xFromRight;
 
 		public AnyfinConfig()
 		{
-			IconX = 83.5;
-			IconY = 69.5;
+			IconX = 5;
+			IconY = 0;
+			YFromBottom = true;
+			XFromRight = false;
 		}
 
 		[DefaultValue(false)]
@@ -43,6 +47,28 @@ namespace AnyfinCalculator
 			{
 				if (value == _iconY) return;
 				_iconY = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public bool YFromBottom
+		{
+			get { return _yFromBottom; }
+			set
+			{
+				if (value == _yFromBottom) return;
+				_yFromBottom = value;
+				OnPropertyChanged();
+			}
+		}
+
+		public bool XFromRight
+		{
+			get { return _xFromRight; }
+			set
+			{
+				if (value == _xFromRight) return;
+				_xFromRight = value;
 				OnPropertyChanged();
 			}
 		}
