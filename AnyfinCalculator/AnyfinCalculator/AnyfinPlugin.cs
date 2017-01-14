@@ -9,10 +9,12 @@ using Hearthstone_Deck_Tracker;
 using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Plugins;
+using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Utility.Logging;
 using MahApps.Metro.Controls.Dialogs;
 using Card = Hearthstone_Deck_Tracker.Hearthstone.Card;
 using Core = Hearthstone_Deck_Tracker.API.Core;
+using System.Threading.Tasks;
 
 namespace AnyfinCalculator
 {
@@ -27,6 +29,8 @@ namespace AnyfinCalculator
 		private StackPanel _toolTipsPanel;
 		private bool _inAnyfinGame;
 
+		protected MenuItem mainMenuItem { get; set; }
+
 		public void OnLoad()
 		{
 			_displayBlock = new HearthstoneTextBlock { FontSize = 36, Visibility = Visibility.Collapsed };
@@ -36,9 +40,13 @@ namespace AnyfinCalculator
 			_toolTip = new CardToolTip();
 			_toolTipsPanel = new StackPanel();
 
+			// Create main menu item
+			mainMenuItem = new MenuItem();
+			mainMenuItem.Header = "Calculate Board";
+			mainMenuItem.Click += new RoutedEventHandler(ForceUpdateClick);
+
 			GameEvents.OnPlayerHandMouseOver.Add(OnMouseOver);
 			GameEvents.OnMouseOverOff.Add(OnMouseOff);
-
 			GameEvents.OnGameStart.Add(OnGameStart);
 			GameEvents.OnGameEnd.Add(OnGameEnd);
 			GameEvents.OnOpponentPlayToGraveyard.Add(UpdateDisplay);
@@ -46,7 +54,7 @@ namespace AnyfinCalculator
 			GameEvents.OnPlayerPlay.Add(UpdateDisplay);
 			GameEvents.OnOpponentPlay.Add(UpdateDisplay);
 			DeckManagerEvents.OnDeckSelected.Add(OnGameStart);
-
+			GameEvents.OnTurnStart.Add(OnTurnStart);
 			Core.OverlayCanvas.Children.Add(_display);
 			if (!Core.Game.IsInMenu)
 			OnGameStart();
@@ -69,9 +77,23 @@ namespace AnyfinCalculator
 			UpdateDisplay(null);
 		}
 
-		private void UpdateDisplay(Card c)
+		private void ForceUpdateClick(object o, RoutedEventArgs a)
+		{
+			UpdateDisplay(null);
+		}
+
+		private void OnTurnStart(ActivePlayer player)
+		{
+			UpdateDisplay(null);
+		}
+
+		private async void UpdateDisplay(Card c)
 		{
 			if (!_inAnyfinGame) return;
+
+			// Temporary fix for race condition where the GameTags on the played card haven't been updated yet.
+			await Task.Delay(200);
+
 			Range<int> range = _calculator.CalculateDamageDealt();
 			_display.DamageText = $"{range.Minimum}\n{range.Maximum}";
 			if (_display.Visibility == Visibility.Collapsed)
@@ -98,10 +120,14 @@ namespace AnyfinCalculator
 				"Anyfin Can Happen Calculator is a plugin for Hearthstone Deck Tracker which allows you to quickly and easily figure out the damage " +
 				"(or damage range) that playing Anyfin Can Happen will have on your current board. \n For any questions or issues look at github.com/ericBG/AnyfinCalculator";
 
+		public MenuItem MenuItem
+		{
+			get { return mainMenuItem; }
+		}
+
 		public string ButtonText => "Options";
 		public string Author => "ericBG";
 		public Version Version => new Version(1, 0, 6);
-		public MenuItem MenuItem => null;
 
 		private void ConfigHandler()
 		{

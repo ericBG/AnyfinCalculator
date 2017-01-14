@@ -6,6 +6,7 @@ using Hearthstone_Deck_Tracker;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Hearthstone.Entities;
 using Hearthstone_Deck_Tracker.Utility.Logging;
+using System;
 
 namespace AnyfinCalculator
 {
@@ -24,6 +25,7 @@ namespace AnyfinCalculator
 					Core.Game.Opponent.Board);
 				return new Range<int> {Maximum = damage, Minimum = damage};
 			}
+
 			var sw = Stopwatch.StartNew();
 			var murlocs = _helper.TrackedMinions.ToList();
 			var board = Core.Game.Player.Board.ToList();
@@ -83,11 +85,17 @@ namespace AnyfinCalculator
 									IsSilenced = IsSilenced(ent),
 									Murloc = ent.Card
 								})).ToList();
+
+			// Calculate which of the murlocs give buffs (now only your own murlocs)
 			var nonSilencedWarleaders =
-				murlocs.Count(m => m.BoardState != MurlocInfo.State.Dead && m.Murloc.IsWarleader() && !m.IsSilenced);
+				murlocs.Count(m => m.BoardState == MurlocInfo.State.OnBoard && m.Murloc.IsWarleader() && !m.IsSilenced);
 			var nonSilencedGrimscales =
-				murlocs.Count(m => m.BoardState != MurlocInfo.State.Dead && m.Murloc.IsGrimscale() && !m.IsSilenced);
+				murlocs.Count(m => m.BoardState == MurlocInfo.State.OnBoard && m.Murloc.IsGrimscale() && !m.IsSilenced);
+
+			// Get the murlocs that will be summoned
 			var murlocsToBeSummoned = murlocs.Count(m => m.BoardState == MurlocInfo.State.Dead);
+
+			// Go through each currently buffed murloc and remove the buffs
 			foreach (var murloc in murlocs.Where(t => t.AreBuffsApplied))
 			{
 				murloc.AreBuffsApplied = false;
@@ -97,8 +105,12 @@ namespace AnyfinCalculator
 				if (murloc.Murloc.IsWarleader()) murloc.Attack += 2;
 				if (murloc.Murloc.IsMurkEye()) murloc.Attack -= (murlocs.Count(m => m.BoardState != MurlocInfo.State.Dead) - 1);
 			}
+
+			// Add the now summoned buffers to the pool
 			nonSilencedWarleaders += murlocs.Count(m => m.BoardState == MurlocInfo.State.Dead && m.Murloc.IsWarleader());
 			nonSilencedGrimscales += murlocs.Count(m => m.BoardState == MurlocInfo.State.Dead && m.Murloc.IsGrimscale());
+
+			// Go through the murlocs on the board and apply all of the final buffs
 			foreach (var murloc in murlocs)
 			{
 				murloc.AreBuffsApplied = true;
